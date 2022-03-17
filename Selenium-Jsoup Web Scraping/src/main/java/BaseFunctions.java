@@ -6,17 +6,12 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class BaseFunctions{
+public class BaseFunctions extends App{
 
     static Connection connection;
     static Statement statement;
+
     public static void clearDB(){
-
-        String dburl = "jdbc:mysql://localhost:3306/patent";
-        String username = "root";
-        String password = "";
-        int counter = 1;
-
 
         try {
             Class.forName("com.mysql.jdbc.Driver");
@@ -36,5 +31,7 @@ public class BaseFunctions{
         }
 
     }
+
+
 
 }
