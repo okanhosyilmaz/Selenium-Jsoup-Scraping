@@ -21,7 +21,7 @@ public class App extends DriverSetUp{
         String password = "";
         int counter = 1;
 
-///////////////////////////////////// XAMPP DATABASE CONNECTION ////////////////////////////////////////////////////////
+///////////////////////////////////// XAMP DATABASE CONNECTION ////////////////////////////////////////////////////////
         try {
             Class.forName("com.mysql.jdbc.Driver");
             connection = DriverManager.getConnection(dburl , username , password);
