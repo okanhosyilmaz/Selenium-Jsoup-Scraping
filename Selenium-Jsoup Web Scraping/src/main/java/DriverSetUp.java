@@ -7,11 +7,11 @@ public class DriverSetUp {
 
     static WebDriver driver;
     static WebDriverWait wait;
-    public static void driverSetUp(){
+    public static void driverSetUp(String URL){
 
         System.setProperty("webdriver.chrome.driver" , "src/driver/chromedriver.exe");
         driver = new ChromeDriver();
-        driver.get("https://tmsearch.uspto.gov/bin/gate.exe?f=login&p_lang=english&p_d=trmk");
+        driver.get(URL);
         driver.manage().window().maximize();
         wait = new WebDriverWait(driver , 60);
     }
