@@ -1,4 +1,6 @@
+import com.google.common.base.Stopwatch;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.sql.Connection;
@@ -7,13 +9,14 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class BaseFunctions extends DBInsertion {
 
     static Connection connection;
     static Statement statement;
 
-    public static void clearDB(){
+    public static void clearCAS(){
 
         try {
             Class.forName("com.mysql.jdbc.Driver");
@@ -26,7 +29,7 @@ public class BaseFunctions extends DBInsertion {
         }
 
         try {
-            String sql = "DELETE FROM `patentdata`";
+            String sql = "DELETE FROM `tm_cas`";
             statement.execute(sql);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -34,18 +37,35 @@ public class BaseFunctions extends DBInsertion {
 
     }
 
-    public static void closePopup(){
+    public static void clearUSAS(){
 
         try {
-            /////////////////////// POP UP LOCATOR //////////////////////////////////////////////
-            if (driver.findElement(By.id("fsrInvite")).isDisplayed());{
-
-                wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button[class='fsrButton fsrButton__inviteDecline fsrDeclineButton']"))).click();
-            }
-        } catch (Exception e) {
+            Class.forName("com.mysql.jdbc.Driver");
+            connection = DriverManager.getConnection(dburl , username , password);
+            statement = connection.createStatement();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
             e.printStackTrace();
         }
 
+        try {
+            String sql = "DELETE FROM `tm_usas`";
+            statement.execute(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static void closePopup() {
+        /////////////////////// POP UP LOCATOR //////////////////////////////////////////////
+        List<WebElement> popup = driver.findElements(By.cssSelector("div[class='__fsr ']"));
+
+        if (popup.size()>0) {
+            driver.findElement(By.cssSelector("button[class='fsrButton fsrButton__inviteDecline fsrDeclineButton']")).click();
+            System.out.println("popup occured");
+        }
     }
 
     public static String currentDate(){
@@ -54,6 +74,15 @@ public class BaseFunctions extends DBInsertion {
         Date date = new Date(System.currentTimeMillis());
 
         return simpleDateFormat.format(date);
+    }
+
+    public static void wait(int sayi){
+
+        try {
+            Thread.sleep(sayi*1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
 
