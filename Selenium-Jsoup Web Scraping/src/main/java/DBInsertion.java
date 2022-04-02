@@ -148,6 +148,7 @@ import java.util.List;
         else {
             System.out.println("Not Trademark Available");
             System.out.println("Product Can Be Sellable");
+            ///////////////////////// MYSQL INSERTION ///////////////////////////////////////////////////////////////
             try {
                 String sql = "INSERT INTO `tm_usas` (`serial_number` , `reg_number` , `word_mark` ,`status` , `live_dead` , `link`) VALUES" +
                         "('null' , 'null' , '"+brandName+"' , 'null' , 'null' , 'null'";
@@ -174,12 +175,25 @@ import java.util.List;
         }
 
         /////////////////// LOCATORS //////////////////////////////////////////////////////
+        wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.id("search-crit-1"))));
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            System.out.println(e);
+        }
         driver.findElement(By.id("search-crit-1")).sendKeys(brandName);
         driver.findElement(By.cssSelector("button[class='btn btn-primary mrgn-rght-sm']")).click();
 
+        ///////////////// ASSERTION FOR CORRECT PRODUCT ///////////////////////////////////
         wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.cssSelector("h2[id='result-title']>span"))));
         driver.findElement(By.id("select-results-view-grid")).click();
         driver.findElement(By.id("select-results-view-list")).click();
+
+        //////////////// ASSERTION FOR CORRECT PRODUCT ///////////////////////////////////
+        String searchResult = driver.findElement(By.cssSelector("span[id='search-criteria-desc']>div:nth-child(2)>div+div")).getText();
+        if (searchResult.equals("All")){
+            driver.findElement(By.id("select-results-view-list")).click();
+        }
 
 /*        String attribute = driver.findElement(By.id("printCriteria")).getAttribute("open");
         System.out.println(attribute);
@@ -229,6 +243,10 @@ import java.util.List;
 
         ///////////////////////////////  MANY TRADEMARK AVAILABLE //////////////////////////////////////////////////////
         else {
+
+            //////////////////////////// EXPLICIT WAIT FOR CAS PAGE LATENCY ///////////////////////////////////////////////
+            wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.cssSelector("h2[id='result-title']>span"))));
+
             /////////////////// WEB ELEMENT LIST //////////////////////////////////////////////////////////
             List<WebElement> applicationNumberList = driver.findElements(By.cssSelector("tr>td:nth-child(1)>div>a"));
             List<WebElement> trademarkList = driver.findElements(By.cssSelector("tr>td:nth-child(3)>a"));
@@ -246,7 +264,6 @@ import java.util.List;
             List<String> niceClass = new ArrayList<>();
             List<String> href = new ArrayList<>();
 
-            //////////////////////////// EXPLICIT WAIT FOR CAS PAGE LATENCY ///////////////////////////////////////////////
 
             for (WebElement appNumber : applicationNumberList) {
 
@@ -264,6 +281,7 @@ import java.util.List;
 
                 CIPO.add(cipo.getText());
             }
+            /////////////////// FOR TAKE CORRECT ORDER OF IMG SRC ////////////////////////////////////////////
             int innerCounter = 1;
             for (WebElement types : typeList) {
 

@@ -25,7 +25,7 @@ public class DataBaseConnection extends DBInsertion {
         List<String> brandList = new ArrayList<>();
         int counter = 0;
         try {
-            String sql = "SELECT brand_name FROM `webscrap_products` WHERE id BETWEEN 2521 AND 2526 ";
+            String sql = "SELECT brand_name FROM `webscrap_products` WHERE id BETWEEN 2521 AND 2700 ";
             ResultSet resultSet = statement.executeQuery(sql);
             while (resultSet.next()) {
                 counter += 1;
@@ -50,32 +50,33 @@ public class DataBaseConnection extends DBInsertion {
 
         System.out.println(brandList);
 
-        //////////////////// FUNCTION STARTED ////////////////////////////////
 
+        //////////// INFINITE LOOP FOR CONTINIOUS RUN ////////////////////////////
         while (brandList.size() >= 0) {
-
+            //////// NULL LIST SLEEP 5 MIN //////////////////////////////////////
             if (brandList.size() == 0){
                 Thread.sleep(300000);
             }
-
+            //////////////////// FUNCTION STARTED ////////////////////////////////
             for (String brandName : brandList) {
 
-                Thread threadUS = new Thread(()->{
+/*                Thread threadUS = new Thread(()->{
                     System.out.println("Thread US Started to Search: " +brandName);
                     DBInsertion.usas(brandName);
-                });
+                });*/
 
                 Thread threadCAS = new Thread(()->{
                     System.out.println("Thread CAS Started to Search: " +brandName);
                     DBInsertion.cas(brandName);
                 });
 
-                threadUS.start();
-                threadUS.join();
+                /*threadUS.start();
+                threadUS.join();*/
                 threadCAS.start();
                 threadCAS.join();
 
             }
+            /////////////////// SLEEP 5 MIN ///////////////////////////////////////
             System.out.println("Thread Will Sleep 5 min");
             Thread.sleep(300000);
         }
