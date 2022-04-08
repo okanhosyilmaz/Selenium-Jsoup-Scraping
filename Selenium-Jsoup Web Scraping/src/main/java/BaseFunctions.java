@@ -1,7 +1,5 @@
-import com.google.common.base.Stopwatch;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -22,9 +20,7 @@ public class BaseFunctions extends DBInsertion {
             Class.forName("com.mysql.jdbc.Driver");
             connection = DriverManager.getConnection(dburl , username , password);
             statement = connection.createStatement();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
+        } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
 
@@ -43,17 +39,15 @@ public class BaseFunctions extends DBInsertion {
             Class.forName("com.mysql.jdbc.Driver");
             connection = DriverManager.getConnection(dburl , username , password);
             statement = connection.createStatement();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (ClassNotFoundException | SQLException e) {
+            System.out.println(e);
         }
 
         try {
             String sql = "DELETE FROM `tm_usas`";
             statement.execute(sql);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e);
         }
 
     }
@@ -76,10 +70,10 @@ public class BaseFunctions extends DBInsertion {
         return simpleDateFormat.format(date);
     }
 
-    public static void wait(int sayi){
+    public static void wait(int seconds){
 
         try {
-            Thread.sleep(sayi*1000);
+            Thread.sleep(seconds *1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

@@ -13,13 +13,14 @@ import java.util.List;
     static Statement statement ;
     static SimpleDateFormat simpleDateFormat ;
 
-    static public String dburl = "jdbc:mysql://localhost:3306/patent";
-    static public final String username = "root";
-    static public final String password = "";
+    static public String dburl = "jdbc:mysql://93.89.225.76/tbworion_effect";
+    static public final String username = "tbworion_effect";
+    static public final String password = "1Ytn0x21.,";
 
      public static String URLus = "https://tmsearch.uspto.gov/bin/gate.exe?f=login&p_lang=english&p_d=trmk";
      public static String URLcas = "https://www.ic.gc.ca/app/opic-cipo/trdmrks/srch/home";
 
+     static List<String> errorOccuredProducts = new ArrayList<>();
 
     public static void usas(String brandName) {
 
@@ -32,14 +33,27 @@ import java.util.List;
             connection = DriverManager.getConnection(dburl , username , password);
             statement = connection.createStatement();
         } catch (ClassNotFoundException | SQLException e) {
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
 
-        /////////////////// LOCATORS //////////////////////////////////////////////////////
-        driver.findElement(By.xpath("//a[contains(text(),'Basic Word Mark Search (New User)')]")).click();
-        BaseFunctions.closePopup();
-        driver.findElement(By.cssSelector("input[name='p_s_PARA2']")).sendKeys(brandName); //// SEARCHBOX
-        driver.findElement(By.xpath("//tbody/tr[4]/td[1]/input[3]")).click(); //// SEARCH BUTTON
+        try{
+            /////////////////// LOCATORS //////////////////////////////////////////////////////
+            driver.findElement(By.xpath("//a[contains(text(),'Basic Word Mark Search (New User)')]")).click();
+            BaseFunctions.closePopup();
+            driver.findElement(By.cssSelector("input[name='p_s_PARA2']")).sendKeys(brandName); //// SEARCHBOX
+            driver.findElement(By.xpath("//tbody/tr[4]/td[1]/input[3]")).click(); //// SEARCH BUTTON
+        } catch (Exception e) {
+            System.out.println("ERROR US " + e.getMessage() + " Occured");
+            ////////////////// ADD MISSED BRANDS TO LIST //////////////////////////////////
+            if (errorOccuredProducts.contains(brandName)){
+                driver.close();
+            }
+            else {
+                errorOccuredProducts.add(brandName);
+                driver.close();
+            }
+        }
+
 
         ///////////////////// JUST 1 RECORD OCCURED ////////////////////////////////////////
 
@@ -56,6 +70,8 @@ import java.util.List;
             List<String> serialNumber = new ArrayList<>();
             List<String> status = new ArrayList<>();
             List<String> productName = new ArrayList<>();
+        try {
+
 
             for (WebElement element : serialNumberList){
 
@@ -69,7 +85,17 @@ import java.util.List;
 
                 productName.add(element.getText().replaceAll("(?=\\')." , ""));
             }
-
+        } catch (Exception e) {
+            System.out.println("ERROR US " + e.getMessage() + " Occured");
+            ////////////////// ADD MISSED BRANDS TO LIST //////////////////////////////////
+            if (errorOccuredProducts.contains(brandName)){
+                driver.close();
+            }
+            else {
+                errorOccuredProducts.add(brandName);
+                driver.close();
+            }
+        }
             for (int counter =0 ;counter<serialNumber.size();counter+=1) {
                 try {
                     String sql = "INSERT INTO `tm_usas` (`serial_number` , `reg_number` , `word_mark` ,`status` , `live_dead` , `link`) VALUES " +
@@ -77,7 +103,7 @@ import java.util.List;
                             "'" + status.get(counter) + "' , 'null' , 'null')";
                     statement.execute(sql);
                 } catch (SQLException e) {
-                    System.out.println(e);
+                    System.out.println(e.getMessage());
                 }
             }
         }
@@ -100,6 +126,8 @@ import java.util.List;
         List<String> nameList = new ArrayList<>();
         List<String> registrationNumberList = new ArrayList<>();
         List<String> checkStatus = new ArrayList<>();
+    try {
+
 
         for (WebElement serial : serialNumberList){
 
@@ -130,8 +158,18 @@ import java.util.List;
 
             checkStatus.add(check.getText());
         }
-
-        //////////////////// MYSQL USAS TABLE INSERTION ////////////////////////////////////////////////////////////
+    } catch (Exception e) {
+        System.out.println("ERROR US " + e.getMessage() + " Occured");
+        ////////////////// ADD MISSED BRANDS TO LIST //////////////////////////////////
+        if (errorOccuredProducts.contains(brandName)){
+            driver.close();
+        }
+        else {
+            errorOccuredProducts.add(brandName);
+            driver.close();
+        }
+    }
+            //////////////////// MYSQL USAS TABLE INSERTION ////////////////////////////////////////////////////////////
         for (int counter =0 ;counter<serialNumber.size();counter+=1) {
             try {
                 String sql = "INSERT INTO `tm_usas` (`serial_number` , `reg_number` , `word_mark` ,`status` , `live_dead` , `link`) VALUES " +
@@ -139,7 +177,7 @@ import java.util.List;
                         "'" + checkStatus.get(counter) + "' , '" + statusList.get(counter) + "' , '" + serialNumberHref.get(counter) + "')";
                 statement.execute(sql);
             } catch (SQLException e) {
-                System.out.println(e);
+                System.out.println(e.getMessage());
             }
 
         }
@@ -154,7 +192,7 @@ import java.util.List;
                         "('null' , 'null' , '"+brandName+"' , 'null' , 'null' , 'null'";
                 statement.execute(sql);
             } catch (Exception e) {
-                System.out.println(e);
+                System.out.println(e.getMessage());
             }
         }
         System.out.println("US COMPLETED");
@@ -171,29 +209,56 @@ import java.util.List;
             connection = DriverManager.getConnection(dburl, username, password);
             statement = connection.createStatement();
         } catch (ClassNotFoundException | SQLException e) {
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
 
         /////////////////// LOCATORS //////////////////////////////////////////////////////
         wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.id("search-crit-1"))));
         try {
             Thread.sleep(500);
-        } catch (InterruptedException e) {
-            System.out.println(e);
-        }
-        driver.findElement(By.id("search-crit-1")).sendKeys(brandName);
-        driver.findElement(By.cssSelector("button[class='btn btn-primary mrgn-rght-sm']")).click();
+            try {
+                driver.findElement(By.id("search-crit-1")).sendKeys(brandName);
+                driver.findElement(By.cssSelector("button[class='btn btn-primary mrgn-rght-sm']")).click();
+            } catch (Exception e) {
+                //////////////// ADD MISSED BRANDS TO LIST /////////////////////////////////
+                if (errorOccuredProducts.contains(brandName)){
+                    driver.close();
+                }
+                else {
+                    errorOccuredProducts.add(brandName);
+                    driver.close();
+                }
+            }
+            ///////////////// ASSERTION FOR CORRECT PRODUCT ///////////////////////////////////
+            try {
+                wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.cssSelector("h2[id='result-title']>span"))));
+            } catch (Exception e) {
+                System.out.println("ERROR " + e.getMessage() + " occured");
+                ////////////////// ADD MISSED BRANDS TO LIST /////////////////////////////////
+                if (errorOccuredProducts.contains(brandName)){
+                    driver.close();
+                }
+                else {
+                    errorOccuredProducts.add(brandName);
+                    driver.close();
+                }
 
-        ///////////////// ASSERTION FOR CORRECT PRODUCT ///////////////////////////////////
-        wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.cssSelector("h2[id='result-title']>span"))));
-        driver.findElement(By.id("select-results-view-grid")).click();
-        driver.findElement(By.id("select-results-view-list")).click();
-
-        //////////////// ASSERTION FOR CORRECT PRODUCT ///////////////////////////////////
-        String searchResult = driver.findElement(By.cssSelector("span[id='search-criteria-desc']>div:nth-child(2)>div+div")).getText();
-        if (searchResult.equals("All")){
+            }
+            driver.findElement(By.id("select-results-view-grid")).click();
             driver.findElement(By.id("select-results-view-list")).click();
+
+            //////////////// ASSERTION FOR CORRECT PRODUCT ///////////////////////////////////
+            String searchResult = driver.findElement(By.cssSelector("span[id='search-criteria-desc']>div:nth-child(2)>div+div")).getText();
+            if (searchResult.equals("All")){
+                driver.findElement(By.id("select-results-view-list")).click();
+            }
+        } catch (InterruptedException e) {
+            System.out.println("ERROR " + e.getMessage() + " occured");
+            ////////////////// ADD MISSED BRANDS TO LIST //////////////////////////////////
+            errorOccuredProducts.add(brandName);
+            driver.close();
         }
+
 
 /*        String attribute = driver.findElement(By.id("printCriteria")).getAttribute("open");
         System.out.println(attribute);
@@ -236,7 +301,7 @@ import java.util.List;
                         " ('null' , '" + brandName.replaceAll("(?=\\').", "") + "' , 'null' , 'null' , 'null' , 'null' , 'null' )  ";
                 statement.execute(sql);
             } catch (SQLException e) {
-                System.out.println(e);
+                System.out.println(e.getMessage());
             }
         }
 
@@ -264,12 +329,11 @@ import java.util.List;
             List<String> niceClass = new ArrayList<>();
             List<String> href = new ArrayList<>();
 
-
+        try {
             for (WebElement appNumber : applicationNumberList) {
 
                 applicationNumber.add(appNumber.getText());
                 href.add(appNumber.getAttribute("href"));
-
             }
 
             for (WebElement trademarkName : trademarkList) {
@@ -299,6 +363,17 @@ import java.util.List;
 
                 niceClass.add(typeClass.getText());
             }
+        } catch (Exception e) {
+            System.out.println("ERROR "+ e.getMessage()+" occured");
+            //////////////// MISSED PRODUCT ADD TO LIST ////////////////////////////
+            if (errorOccuredProducts.contains(brandName)){
+                driver.close();
+            }
+            else {
+                errorOccuredProducts.add(brandName);
+                driver.close();
+            }
+        }
 
 
             //////////////////// MYSQL CAS TABLE INSERTION ////////////////////////////////////////////////////////////
@@ -310,11 +385,12 @@ import java.util.List;
                             " '" + href.get(counter) + "' , '" + imgSource.get(counter) + "')";
                     statement.execute(sql);
                 } catch (SQLException e) {
-                    System.out.println(e);
+                    System.out.println(e.getMessage());
                 }
 
             }
             System.out.println("CAS COMPLETED");
+            System.out.println(errorOccuredProducts);
         }
     tearDown();
     }

@@ -1,6 +1,7 @@
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.SortedMap;
 
 public class DataBaseConnection extends DBInsertion {
 
@@ -18,67 +19,155 @@ public class DataBaseConnection extends DBInsertion {
             connection = DriverManager.getConnection(DBURL, USERNAME, PASSWORD);
             statement = connection.createStatement();
         } catch (ClassNotFoundException | SQLException e) {
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
 
         ////////////////////////// GET BRANDNAME INSIDE DB ////////////////////
         List<String> brandList = new ArrayList<>();
         int counter = 0;
-        try {
-            String sql = "SELECT brand_name FROM `webscrap_products` WHERE id BETWEEN 2521 AND 2700 ";
-            ResultSet resultSet = statement.executeQuery(sql);
-            while (resultSet.next()) {
-                counter += 1;
-                for (int i = 0; i < counter; i += 1) {
-                    String resultStr = resultSet.getString("brand_name");
-                    /////////// DO NOT ADD SAME VARIABLE /////////////////////////////
-                    if (brandList.contains(resultStr)) {
-                        continue;
-                    }
-                    ////////// DO NOT ADD NULL VARIABLE ///////////////////////
-                    else if (resultStr == null) {
-                        continue;
-                    } else {
-                        brandList.add(resultStr);
-                    }
-                }
-            }
-
-        } catch (SQLException e) {
-            System.out.println(e);
-        }
-
-        System.out.println(brandList);
-
 
         //////////// INFINITE LOOP FOR CONTINIOUS RUN ////////////////////////////
-        while (brandList.size() >= 0) {
+        while (true) {////////////////// BURAYI DÜZELT ///////////////////////////
+            //////////////// NEW VARIABLE WHICH SCANNED BEFORE TRADEMARK_STATUS CHANGE //////////////////////
+            String sql = "update webscrap_products a set \n" +
+                    "a.trademark_status = 1,\n" +
+                    "a.trademark_status_date = sysdate()\n" +
+                    "where `a`.`brand_name` is not null \n" +
+                    "and `a`.`trademark_status` = 0 \n" +
+                    "and `a`.`trademark_status_date` is null \n" +
+                    "and a.brand_name in(\n" +
+                    "SELECT w.brand_name FROM webscrap_products w \n" +
+                    "WHERE w.trademark_status=1\n" +
+                    "and a.brand_name=w.brand_name\n" +
+                    "and datediff(date_format(w.created_at,'%Y-%m-%d'),date_format(w.trademark_status_date,'%Y-%m-%d'))<90)";
+            try {
+                statement.execute(sql);
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+
+            sql = "update webscrap_products a set \n" +
+                    "a.trademark_status = 1,\n" +
+                    "a.trademark_status_date = sysdate()\n" +
+                    "where `a`.`brand_name` is null\n" +
+                    "and `a`.`manufacturer` is not null\n" +
+                    "and `a`.`trademark_status` = 0 \n" +
+                    "and `a`.`trademark_status_date` is null \n" +
+                    "and a.manufacturer in(\n" +
+                    "SELECT w.manufacturer FROM webscrap_products w \n" +
+                    "WHERE w.trademark_status=1\n" +
+                    "and a.manufacturer=w.manufacturer\n" +
+                    "and datediff(date_format(w.created_at,'%Y-%m-%d'),date_format(w.trademark_status_date,'%Y-%m-%d'))<90)";
+            try {
+                statement.execute(sql);
+            } catch (SQLException e) {
+                System.out.printf(e.getMessage());
+            }
+
+            //////////////// 90 DAY CONTROL SQL ///////////////////////////////////////
+            sql = "update webscrap_products a SET\n" +
+                    "a.trademark_status=0,\n" +
+                    "a.trademark_status_date=null\n" +
+                    "where a.trademark_status=1\n" +
+                    "and datediff(date_format(sysdate(),'%Y-%m-%d'),date_format(a.trademark_status_date,'%Y-%m-%d'))>90";
+            try {
+                statement.execute(sql);
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+
+            try {
+                /////////////////// BRAND NAME FROM VIEW //////////////////////////
+                sql = "SELECT brand_name FROM `webscrap_trademark_view` ";
+                ResultSet resultSet = statement.executeQuery(sql);
+                while (resultSet.next()) {
+                    counter += 1;
+                    for (int i = 0; i < counter; i += 1) {
+                        String resultStr = resultSet.getString("brand_name");
+                        /////////// DO NOT ADD SAME VARIABLE /////////////////////////////
+                        if (brandList.contains(resultStr)) {
+                            continue;
+                        }
+                        ////////// DO NOT ADD NULL VARIABLE ///////////////////////
+                        else if (resultStr == null) {
+                            continue;
+                        } else {
+                            brandList.add(resultStr);
+                        }
+                    }
+                }
+
+            } catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+
+            System.out.println(brandList);
+
             //////// NULL LIST SLEEP 5 MIN //////////////////////////////////////
-            if (brandList.size() == 0){
-                Thread.sleep(300000);
+            if (brandList.size() == 0) {
+                System.out.println("List is null");
+                System.out.println("Threads will sleep 5 min more!");
+                Thread.sleep(5*60000);
             }
             //////////////////// FUNCTION STARTED ////////////////////////////////
             for (String brandName : brandList) {
 
-/*                Thread threadUS = new Thread(()->{
-                    System.out.println("Thread US Started to Search: " +brandName);
-                    DBInsertion.usas(brandName);
-                });*/
+/*                Thread threadUS = null;
+                try {
+                    threadUS = new Thread(() -> {
+                        System.out.println("Thread US Started to Search: " + brandName);
+                        DBInsertion.usas(brandName);
+                    });
+                } catch (Exception e) {
+                    driver.close();
+                }*/
 
-                Thread threadCAS = new Thread(()->{
-                    System.out.println("Thread CAS Started to Search: " +brandName);
-                    DBInsertion.cas(brandName);
+                Thread threadCAS = null;
+                try {
+                    threadCAS = new Thread(() -> {
+                        System.out.println("Thread CAS Started to Search: " + brandName);
+                        DBInsertion.cas(brandName);
+                    });
+                } catch (Exception e) {
+                    driver.close();
+                }
+                ///////////////// UPDATE TABLE VARIABLES AFTER SCANNING SQL ///////////////////////////////
+                Thread threadUPDATE = new Thread(() -> {
+                    System.out.println("Thread UPDATE Started to update " + brandName + " variable!");
+                    try {
+                        String update = "UPDATE `webscrap_products` SET `trademark_status` = 1 , `trademark_status_date` = sysdate() WHERE ( `brand_name`='" + brandName + "' OR `manufacturer` = '" + brandName + "')";
+                        statement.execute(update);
+                    } catch (SQLException e) {
+                        System.out.println(e.getMessage());
+                    }
                 });
 
-                /*threadUS.start();
+/*                threadUS.start();
                 threadUS.join();*/
                 threadCAS.start();
                 threadCAS.join();
-
+                threadUPDATE.start();
+                threadUPDATE.join();
             }
             /////////////////// SLEEP 5 MIN ///////////////////////////////////////
             System.out.println("Thread Will Sleep 5 min");
-            Thread.sleep(300000);
+            Thread.sleep(5*60000);
+            ////// BRANDLIST CLEAR FOR PREVENT OVERWRITE /////////////////////////
+            brandList.clear();
+            ///////////////// CHANGE STATUS OF MISSED DATA AND TRY AGAIN //////////
+            if (DBInsertion.errorOccuredProducts.size()>0){
+                for (String errorData : DBInsertion.errorOccuredProducts){
+                    try {
+                        sql = "UPDATE `webscrap_products` SET `trademark_status` = 0 ," +
+                                "`trademark_status_date` = '' " +
+                                "WHERE ( `brand_name` = "+errorData+" OR  `manufacturer` = "+errorData+") ";
+                        statement.execute(sql);
+                    } catch (Exception e) {
+                        System.out.println("ERROR " + e.getMessage() + " occured when ERRORED data insertion!");
+                    }
+                }
+                DBInsertion.errorOccuredProducts.clear();
+            }
         }
     }
 }

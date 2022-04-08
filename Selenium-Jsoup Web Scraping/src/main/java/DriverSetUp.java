@@ -14,10 +14,15 @@ public class DriverSetUp {
         driver = new ChromeDriver();
         driver.get(URL);
         driver.manage().window().maximize();
-        driver.manage().timeouts().implicitlyWait(30 , TimeUnit.SECONDS);
-        wait = new WebDriverWait(driver , 60);
+        try {
+            driver.manage().timeouts().implicitlyWait(30 , TimeUnit.SECONDS);
+            wait = new WebDriverWait(driver , 60);
+        } catch (Exception e) {
+            System.out.println("Fluent Wait ERROR Occured");
+            driver.close();
+        }
 
-    }
+     }
 
     public static WebDriver getWebDriver(){
 
