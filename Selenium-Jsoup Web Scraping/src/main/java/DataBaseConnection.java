@@ -4,12 +4,39 @@ import java.util.List;
 import java.util.SortedMap;
 
 public class DataBaseConnection extends DBInsertion {
+/* CREATE TRIGGER `trademark_brand_trigger` AFTER INSERT ON `webscrap_products`
+ FOR EACH ROW update webscrap_products a set
+                    a.trademark_status = 1,
+                    a.trademark_status_date = sysdate()
+                    where `a`.`brand_name` is not null
+                    and `a`.`trademark_status` = 0
+                    and `a`.`trademark_status_date` is null
+                        and a.brand_name in(
+                        SELECT w.brand_name FROM webscrap_products w
+                        WHERE w.trademark_status=1
+                        and a.brand_name=w.brand_name
+                        and datediff(date_format(w.created_at,'%Y-%m-%d'),date_format(w.trademark_status_date,'%Y-%m-%d'))<90)
 
+CREATE TRIGGER `trademark_manufacturer_trigger` AFTER INSERT ON `webscrap_products`
+ FOR EACH ROW update webscrap_products a set
+                    a.trademark_status = 1,
+                    a.trademark_status_date = sysdate()
+                    where a.brand_name is null
+                    and a.manufacturer is not null
+                    and a.trademark_status = 0
+                    and a.trademark_status_date is null
+                        and a.manufacturer in(
+                        SELECT w.manufacturer FROM webscrap_products w
+                        WHERE w.trademark_status=1
+                        and a.manufacturer=w.manufacturer
+and datediff(date_format
+(w.created_at,'%Y-%m-%d'),date_format(w.trademark_status_date,'%Y-%m-%d'))<90)
+ */
     static Connection connection;
     static Statement statement;
     static public String DBURL = "jdbc:mysql://93.89.225.76/tbworion_effect";
     static public final String USERNAME = "tbworion_effect";
-    static public final String PASSWORD = "1Ytn0x21.,";
+    static public final String PASSWORD = "1Ytn0x21$$";
 
     public static void main(String[] args) throws InterruptedException {
 
@@ -27,26 +54,27 @@ public class DataBaseConnection extends DBInsertion {
         int counter = 0;
 
         //////////// INFINITE LOOP FOR CONTINIOUS RUN ////////////////////////////
-        while (true) {////////////////// BURAYI DÜZELT ///////////////////////////
-            //////////////// NEW VARIABLE WHICH SCANNED BEFORE TRADEMARK_STATUS CHANGE //////////////////////
+        while (true) {
+          /*  //////////////// NEW VARIABLE WHICH SCANNED BEFORE TRADEMARK_STATUS CHANGE //////////////////////
+            ///////////////// BRANDNAME UPDATE //////////////////////////////
             String sql = "update webscrap_products a set \n" +
                     "a.trademark_status = 1,\n" +
                     "a.trademark_status_date = sysdate()\n" +
                     "where `a`.`brand_name` is not null \n" +
                     "and `a`.`trademark_status` = 0 \n" +
                     "and `a`.`trademark_status_date` is null \n" +
-                    "and a.brand_name in(\n" +
-                    "SELECT w.brand_name FROM webscrap_products w \n" +
-                    "WHERE w.trademark_status=1\n" +
-                    "and a.brand_name=w.brand_name\n" +
-                    "and datediff(date_format(w.created_at,'%Y-%m-%d'),date_format(w.trademark_status_date,'%Y-%m-%d'))<90)";
+                        "and a.brand_name in(\n" +
+                        "SELECT w.brand_name FROM webscrap_products w \n" +
+                        "WHERE w.trademark_status=1\n" +
+                        "and a.brand_name=w.brand_name\n" +
+                        "and datediff(date_format(w.created_at,'%Y-%m-%d'),date_format(w.trademark_status_date,'%Y-%m-%d'))<90)";
             try {
                 statement.execute(sql);
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
             }
-
-            sql = "update webscrap_products a set \n" +
+            /////////// MANUFACTURER UPDATE //////////////////////////////////////////
+            String sql = "update webscrap_products a set \n" +
                     "a.trademark_status = 1,\n" +
                     "a.trademark_status_date = sysdate()\n" +
                     "where `a`.`brand_name` is null\n" +
@@ -62,10 +90,10 @@ public class DataBaseConnection extends DBInsertion {
                 statement.execute(sql);
             } catch (SQLException e) {
                 System.out.printf(e.getMessage());
-            }
+            }*/
 
             //////////////// 90 DAY CONTROL SQL ///////////////////////////////////////
-            sql = "update webscrap_products a SET\n" +
+            String sql = "update webscrap_products a SET\n" +
                     "a.trademark_status=0,\n" +
                     "a.trademark_status_date=null\n" +
                     "where a.trademark_status=1\n" +
@@ -103,7 +131,7 @@ public class DataBaseConnection extends DBInsertion {
 
             System.out.println(brandList);
 
-            //////// NULL LIST SLEEP 5 MIN //////////////////////////////////////
+            //////// IF LIST IS NULL THEN SLEEP 5 MIN //////////////////////////////////////
             if (brandList.size() == 0) {
                 System.out.println("List is null");
                 System.out.println("Threads will sleep 5 min more!");
@@ -112,7 +140,7 @@ public class DataBaseConnection extends DBInsertion {
             //////////////////// FUNCTION STARTED ////////////////////////////////
             for (String brandName : brandList) {
 
-/*                Thread threadUS = null;
+                Thread threadUS = null;
                 try {
                     threadUS = new Thread(() -> {
                         System.out.println("Thread US Started to Search: " + brandName);
@@ -120,7 +148,7 @@ public class DataBaseConnection extends DBInsertion {
                     });
                 } catch (Exception e) {
                     driver.close();
-                }*/
+                }
 
                 Thread threadCAS = null;
                 try {
@@ -135,15 +163,16 @@ public class DataBaseConnection extends DBInsertion {
                 Thread threadUPDATE = new Thread(() -> {
                     System.out.println("Thread UPDATE Started to update " + brandName + " variable!");
                     try {
-                        String update = "UPDATE `webscrap_products` SET `trademark_status` = 1 , `trademark_status_date` = sysdate() WHERE ( `brand_name`='" + brandName + "' OR `manufacturer` = '" + brandName + "')";
+                        String update = "UPDATE `webscrap_products` SET `trademark_status` = 1 , `trademark_status_date` = sysdate() WHERE " +
+                                "( `brand_name`='" + brandName + "' OR `manufacturer` = '" + brandName + "')";
                         statement.execute(update);
                     } catch (SQLException e) {
                         System.out.println(e.getMessage());
                     }
                 });
-
-/*                threadUS.start();
-                threadUS.join();*/
+                //////// THREAD STARTED AND JOINED(wait for each other thread execution) ////////////////////////////
+                threadUS.start();
+                threadUS.join();
                 threadCAS.start();
                 threadCAS.join();
                 threadUPDATE.start();
@@ -160,7 +189,7 @@ public class DataBaseConnection extends DBInsertion {
                     try {
                         sql = "UPDATE `webscrap_products` SET `trademark_status` = 0 ," +
                                 "`trademark_status_date` = '' " +
-                                "WHERE ( `brand_name` = "+errorData+" OR  `manufacturer` = "+errorData+") ";
+                                "WHERE `brand_name` = "+errorData+" OR  `manufacturer` = "+errorData+" ";
                         statement.execute(sql);
                     } catch (Exception e) {
                         System.out.println("ERROR " + e.getMessage() + " occured when ERRORED data insertion!");

@@ -10,7 +10,7 @@ public class DriverSetUp {
      static WebDriverWait wait;
      static void driverSetUp(String URL){
 
-        System.setProperty("webdriver.chrome.driver" , "src/driver/chromedriver.exe");
+        System.setProperty("webdriver.chrome.driver" , "C:\\Users\\ozanh\\IdeaProjects\\Selenium-Jsoup Web Scraping\\src\\driver\\chromedriver.exe");
         driver = new ChromeDriver();
         driver.get(URL);
         driver.manage().window().maximize();

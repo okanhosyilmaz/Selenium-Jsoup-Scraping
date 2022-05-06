@@ -15,7 +15,7 @@ import java.util.List;
 
     static public String dburl = "jdbc:mysql://93.89.225.76/tbworion_effect";
     static public final String username = "tbworion_effect";
-    static public final String password = "1Ytn0x21.,";
+    static public final String password = "1Ytn0x21$$";
 
      public static String URLus = "https://tmsearch.uspto.gov/bin/gate.exe?f=login&p_lang=english&p_d=trmk";
      public static String URLcas = "https://www.ic.gc.ca/app/opic-cipo/trdmrks/srch/home";
@@ -127,7 +127,6 @@ import java.util.List;
         List<String> registrationNumberList = new ArrayList<>();
         List<String> checkStatus = new ArrayList<>();
     try {
-
 
         for (WebElement serial : serialNumberList){
 
